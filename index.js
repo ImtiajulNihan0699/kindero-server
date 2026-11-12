@@ -11,7 +11,7 @@ app.use(express.json());
 
 //localhost:5000
 const client = new MongoClient(
-  `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@ac-8dvaw4g-shard-00-00.2zg1dp9.mongodb.net:27017,ac-8dvaw4g-shard-00-01.2zg1dp9.mongodb.net:27017,ac-8dvaw4g-shard-00-02.2zg1dp9.mongodb.net:27017/?ssl=true&replicaSet=atlas-hfbbla-shard-0&authSource=admin`,
+  process.env.MONGODB_URI
 );
 export async function connectToMongoDB() {
 
@@ -32,6 +32,13 @@ const events= db.collection('events');
 app.get("/", (req, res) => {
   res.send({ msg: "Hello World" });
 });
+
+app.post("/events",async(req, res)=>{
+  const data= req.body
+
+  const result= await events.insertOne(data)
+  res.send(result)
+})
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
