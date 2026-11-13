@@ -56,6 +56,14 @@ app.get("/events/:id", async (req, res) => {
   res.send(result);
 });
 
+app.get("/my-events/:userId", async (req, res) => {
+  const { userId } = req.params;
+
+  const result = await events.find({ createdBy: userId }).toArray();
+
+  res.send(result);
+});
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
