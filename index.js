@@ -103,6 +103,34 @@ app.patch("/events/:id", async (req, res) => {
   }
 });
 
+
+app.delete("/events/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await events.deleteOne({
+      _id: new ObjectId(id),
+    });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).send({
+        message: "Event not found",
+      });
+    }
+
+    res.send({
+      message: "Event deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting event:", error);
+
+    res.status(500).send({
+      message: "Failed to delete event",
+    });
+  }
+});
+
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
