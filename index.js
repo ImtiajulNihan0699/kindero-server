@@ -64,6 +64,45 @@ app.get("/my-events/:userId", async (req, res) => {
   res.send(result);
 });
 
+app.patch("/events/:id", async (req, res) => {
+  const { id } = req.params;
+  const updatedData = req.body;
+
+  try {
+    const result = await events.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          title: updatedData.title,
+          description: updatedData.description,
+          category: updatedData.category,
+          eventDate: updatedData.eventDate,
+          location: updatedData.location,
+          image: updatedData.image,
+        },
+      },
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send({
+        message: "Event not found",
+      });
+    }
+
+    const updatedEvent = await events.findOne({
+      _id: new ObjectId(id),
+    });
+
+    res.send(updatedEvent);
+  } catch (error) {
+    console.error("Error updating event:", error);
+
+    res.status(500).send({
+      message: "Failed to update event",
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
