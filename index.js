@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import { MongoClient, ObjectId } from "mongodb";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -34,12 +35,36 @@ await joinedEvents.createIndex(
   { unique: true },
 );
 
+const verifyToken = async (req,res,next) => {
+  const authHeader = req.headers.authorization;
+  if(!authHeader) {
+    return res.status(401).send({msg:"Unauthorized!"});
+  }
+
+  const token= authHeader.split(" ")[1]
+  
+   if(!token) {
+    return res.status(401).send({msg:"Unauthorized!"});
+  }
+
+  const JWKS= createRemoteJWKSet(new URL('http://localhost:3000/api/auth/jwks'))
+
+  const {payload} = await jwtVerify(token, JWKS)
+
+  try {
+    const {payload} = await jwtVerify(token, JWKS);
+    next()
+  } catch (error) {
+    return res.status(500).send({msg:"Server Error!"});
+  }
+
+}
 
 app.get("/", (req, res) => {
   res.send({ msg: "Hello World" });
 });
 
-app.post("/events",async(req, res)=>{
+app.post("/events",verifyToken, async(req, res)=>{
   const data= req.body
 
   const result= await events.insertOne(data)
@@ -52,7 +77,7 @@ app.get("/events", async (req, res) => {
   res.send(result);
 });
 
-app.get("/events/:id", async (req, res) => {
+app.get("/events/:id",verifyToken, async (req, res) => {
   const { id } = req.params;
 
   const result = await events.findOne({
@@ -70,7 +95,7 @@ app.get("/my-events/:userId", async (req, res) => {
   res.send(result);
 });
 
-app.patch("/events/:id", async (req, res) => {
+app.patch("/events/:id",verifyToken, async (req, res) => {
   const { id } = req.params;
   const updatedData = req.body;
 
@@ -110,7 +135,7 @@ app.patch("/events/:id", async (req, res) => {
 });
 
 
-app.delete("/events/:id", async (req, res) => {
+app.delete("/events/:id",verifyToken, async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -136,7 +161,7 @@ app.delete("/events/:id", async (req, res) => {
   }
 });
 
-app.post("/joined-events", async (req, res) => {
+app.post("/joined-events",verifyToken, async (req, res) => {
   const { userId, eventId } = req.body;
 
   try {
@@ -200,7 +225,7 @@ app.post("/joined-events", async (req, res) => {
   }
 });
 
-app.get("/joined-events/:userId", async (req, res) => {
+app.get("/joined-events/:userId",verifyToken, async (req, res) => {
   const { userId } = req.params;
 
   const result = await joinedEvents.find({
