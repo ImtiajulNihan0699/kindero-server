@@ -47,10 +47,8 @@ const verifyToken = async (req,res,next) => {
     return res.status(401).send({msg:"Unauthorized!"});
   }
 
-  const JWKS= createRemoteJWKSet(new URL('http://localhost:3000/api/auth/jwks'))
-
-  const {payload} = await jwtVerify(token, JWKS)
-
+  const JWKS= createRemoteJWKSet(new URL(`${process.env.CLIENT_URL}/api/auth/jwks`))
+  
   try {
     const {payload} = await jwtVerify(token, JWKS);
     next()
@@ -264,3 +262,5 @@ app.delete("/joined-events/:id", async (req, res) => {
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
+
+export default app;
