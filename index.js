@@ -75,7 +75,7 @@ app.get("/events", async (req, res) => {
   res.send(result);
 });
 
-app.get("/events/:id",verifyToken, async (req, res) => {
+app.get("/events/:id", async (req, res) => {
   const { id } = req.params;
 
   const result = await events.findOne({
